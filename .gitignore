@@ -39,3 +39,7 @@ frontend/dist/
 # Root writable directory
 /writable/
 
+# Database connection secrets
+db_connect.md
+ca.pem
+
