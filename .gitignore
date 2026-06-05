@@ -42,4 +42,6 @@ frontend/dist/
 # Database connection secrets
 db_connect.md
 ca.pem
+ca (1).pem
+"ca (1).pem"
 
