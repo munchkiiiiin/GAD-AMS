@@ -356,7 +356,11 @@ const uploadBaseUrl = globalThis.__UPLOAD_BASE_URL__ || globalThis.__API_BASE_UR
 
 const previewFile = (fileName) => {
   if (!fileName) return;
-  window.open(`${uploadBaseUrl}/uploads/${fileName}`, '_blank');
+  if (fileName.startsWith('http://') || fileName.startsWith('https://')) {
+    window.open(fileName, '_blank');
+  } else {
+    window.open(`${uploadBaseUrl}/uploads/${fileName}`, '_blank');
+  }
 };
 
 onMounted(() => {

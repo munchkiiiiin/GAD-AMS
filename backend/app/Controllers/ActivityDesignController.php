@@ -59,19 +59,23 @@ class ActivityDesignController extends BaseController
         }
 
         try {
-            // FIX 3: Process and store physical upload file appropriately
+            // Process and store physical upload file (using Appwrite if configured, else fallback to local)
             $file = $this->request->getFile('attachment');
             $fileName = '';
 
             if ($file && $file->isValid() && !$file->hasMoved()) {
-                $fileName = $file->getRandomName();
-                $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
+                if (\App\Libraries\AppwriteStorage::isConfigured()) {
+                    $fileName = \App\Libraries\AppwriteStorage::uploadFile($file);
+                } else {
+                    $fileName = $file->getRandomName();
+                    $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
 
-                if (!is_dir($uploadPath)) {
-                    mkdir($uploadPath, 0777, true);
+                    if (!is_dir($uploadPath)) {
+                        mkdir($uploadPath, 0777, true);
+                    }
+                    
+                    $file->move($uploadPath, $fileName);
                 }
-                
-                $file->move($uploadPath, $fileName);
             }
 
             $data = [
@@ -284,19 +288,31 @@ class ActivityDesignController extends BaseController
         // 3. Handle New File Upload (if any)
         $file = $this->request->getFile('attachment');
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            // Optional: Delete old file if you want to save space
-            // if ($design['attachment'] && file_exists(FCPATH . 'uploads/' . $design['attachment'])) {
-            //     unlink(FCPATH . 'uploads/' . $design['attachment']);
-            // }
-
-            $newName = $file->getRandomName();
-            $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
-
-            if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
+            // Delete old file if present to save space
+            if (!empty($design['attachment'])) {
+                if (\App\Libraries\AppwriteStorage::isConfigured()) {
+                    \App\Libraries\AppwriteStorage::deleteFile($design['attachment']);
+                } else {
+                    $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
+                    $oldFilePath = $uploadPath . DIRECTORY_SEPARATOR . $design['attachment'];
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
             }
 
-            $file->move($uploadPath, $newName);
+            if (\App\Libraries\AppwriteStorage::isConfigured()) {
+                $newName = \App\Libraries\AppwriteStorage::uploadFile($file);
+            } else {
+                $newName = $file->getRandomName();
+                $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
+
+                if (!is_dir($uploadPath)) {
+                    mkdir($uploadPath, 0777, true);
+                }
+
+                $file->move($uploadPath, $newName);
+            }
             $updateData['attachment'] = $newName;
         }
 

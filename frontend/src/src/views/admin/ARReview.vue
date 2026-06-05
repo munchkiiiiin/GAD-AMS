@@ -282,15 +282,17 @@ const handleSendRevision = async () => {
   }
 };
 
+const apiBaseUrl = globalThis.__API_BASE_URL__ || 'http://localhost:8080';
+
 const previewFile = () => {
   if (!report.value.id) return;
-  window.open(`http://localhost:8080/api/activity-report/attachment/${report.value.id}`, '_blank');
+  window.open(`${apiBaseUrl}/api/activity-report/attachment/${report.value.id}`, '_blank');
 };
 
 const downloadFile = () => {
   if (!report.value.id) return;
   const link = document.createElement('a');
-  link.href = `http://localhost:8080/api/activity-report/attachment/${report.value.id}`;
+  link.href = `${apiBaseUrl}/api/activity-report/attachment/${report.value.id}`;
   link.download = `Accomplishment_Report_${report.value.control || report.value.id}.pdf`;
   link.click();
 };

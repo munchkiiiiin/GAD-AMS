@@ -35,10 +35,20 @@ class AccomplishmentReportController extends BaseController
 
         try {
             $file = $this->request->getFile('attachment');
-            $fileData = null;
+            $attachmentValue = '';
 
             if ($file && $file->isValid() && !$file->hasMoved()) {
-                $fileData = file_get_contents($file->getTempName());
+                if (\App\Libraries\AppwriteStorage::isConfigured()) {
+                    $attachmentValue = \App\Libraries\AppwriteStorage::uploadFile($file);
+                } else {
+                    $fileName = $file->getRandomName();
+                    $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
+                    if (!is_dir($uploadPath)) {
+                        mkdir($uploadPath, 0777, true);
+                    }
+                    $file->move($uploadPath, $fileName);
+                    $attachmentValue = $fileName;
+                }
             }
 
             $data = [
@@ -54,7 +64,7 @@ class AccomplishmentReportController extends BaseController
                 "female"              => $this->request->getPost("female"),
                 "rating"              => $this->request->getPost("rating"),
                 "user_id"             => $this->request->getPost("user_id"),
-                "attachment"          => $fileData,
+                "attachment"          => $attachmentValue,
                 "status"              => "Pending",
             ];
 
@@ -171,5 +181,64 @@ class AccomplishmentReportController extends BaseController
             'success' => true,
             'data'    => $reports
         ]);
+    }
+
+    /**
+     * Retrieve accomplishment report attachment (serves file locally or redirects to Appwrite file preview URL)
+     */
+    public function getAttachment($id = null)
+    {
+        if (!$id) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Report ID required']);
+        }
+
+        $accomplishmentReportModel = new AccomplishmentReportModel();
+        $report = $accomplishmentReportModel->find($id);
+
+        if (!$report) {
+            // Check archive fallback
+            $db = \Config\Database::connect();
+            $report = $db->table('archived_accomplishment_reports')
+                ->where('original_report_id', $id)
+                ->get()->getRowArray();
+        }
+
+        if (!$report || empty($report['attachment'])) {
+            return $this->response->setStatusCode(404)->setBody('Attachment not found');
+        }
+
+        $attachment = $report['attachment'];
+
+        // If it looks like a binary PDF file (for backward compatibility if old binary data remains in DB)
+        if (str_starts_with($attachment, '%PDF')) {
+            return $this->response
+                ->setHeader('Content-Type', 'application/pdf')
+                ->setHeader('Content-Disposition', 'inline; filename="attachment.pdf"')
+                ->setBody($attachment);
+        }
+
+        // If it is an Appwrite storage URL or Appwrite File ID
+        if (str_starts_with($attachment, 'http://') || str_starts_with($attachment, 'https://')) {
+            return $this->response->redirect($attachment);
+        }
+
+        if (\App\Libraries\AppwriteStorage::isConfigured() && !str_contains($attachment, '.')) {
+            $viewUrl = \App\Libraries\AppwriteStorage::getFileViewUrl($attachment);
+            return $this->response->redirect($viewUrl);
+        }
+
+        // Local file fallback
+        $uploadPath = rtrim((string) env('app.uploadPath', FCPATH . 'uploads'), DIRECTORY_SEPARATOR);
+        $filePath = $uploadPath . DIRECTORY_SEPARATOR . $attachment;
+
+        if (file_exists($filePath)) {
+            $fileContent = file_get_contents($filePath);
+            return $this->response
+                ->setHeader('Content-Type', 'application/pdf')
+                ->setHeader('Content-Disposition', 'inline; filename="' . $attachment . '"')
+                ->setBody($fileContent);
+        }
+
+        return $this->response->setStatusCode(404)->setBody('Attachment file not found on server');
     }
 }

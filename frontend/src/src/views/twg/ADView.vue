@@ -177,7 +177,14 @@ const formatTime = (time) => {
 };
 const formatCurrency = (amt) => amt ? parseFloat(amt).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
 const uploadBaseUrl = globalThis.__UPLOAD_BASE_URL__ || globalThis.__API_BASE_URL__ || 'http://localhost:8080';
-const previewFile = (fileName) => fileName && window.open(`${uploadBaseUrl}/uploads/${fileName}`, '_blank');
+const previewFile = (fileName) => {
+  if (!fileName) return;
+  if (fileName.startsWith('http://') || fileName.startsWith('https://')) {
+    window.open(fileName, '_blank');
+  } else {
+    window.open(`${uploadBaseUrl}/uploads/${fileName}`, '_blank');
+  }
+};
 
 onMounted(() => {
   if (!user.value.id || user.value.role !== 'college') router.push('/login');
