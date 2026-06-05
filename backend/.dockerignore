@@ -1,0 +1,8 @@
+vendor/
+.env
+.git
+.github
+tests/
+phpunit.xml.dist
+writable/*
+!writable/.gitkeep
