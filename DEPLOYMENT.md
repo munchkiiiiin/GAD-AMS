@@ -16,6 +16,14 @@ Set these in the Appwrite-hosted frontend build:
 
 If you are using an Appwrite storage bucket with public file URLs, point `VITE_UPLOAD_BASE_URL` to that public bucket origin.
 
+### Appwrite Git Deployment Settings
+
+When deploying the frontend from your GitHub repository, you must specify the folder containing the frontend application in the Appwrite Console under **Settings** / **Build Settings**:
+
+1. **Root Directory**: Change this from `.` to `frontend` (this ensures Appwrite runs build commands inside the folder containing `package.json`).
+2. **Build Command**: `npm run build` (or `npm install && npm run build`)
+3. **Output / Publish Directory**: `dist` (Vite's default build output folder)
+
 ## Backend env
 
 Set these in Render:
