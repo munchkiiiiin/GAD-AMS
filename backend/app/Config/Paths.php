@@ -55,6 +55,22 @@ class Paths
      */
     public string $writableDirectory = __DIR__ . '/../../../writable';
 
+    public function __construct()
+    {
+        // For local development where writable is at the workspace root
+        $localRootWritable = __DIR__ . '/../../../writable';
+        // For Docker where writable is inside the backend directory (/var/www/html/writable)
+        $backendWritable = __DIR__ . '/../../writable';
+
+        if (is_dir($backendWritable)) {
+            $this->writableDirectory = $backendWritable;
+        } elseif (is_dir($localRootWritable)) {
+            $this->writableDirectory = $localRootWritable;
+        } else {
+            $this->writableDirectory = $backendWritable;
+        }
+    }
+
     /**
      * ---------------------------------------------------------------
      * TESTS DIRECTORY NAME

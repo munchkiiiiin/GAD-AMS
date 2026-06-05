@@ -4,5 +4,9 @@ vendor/
 .github
 tests/
 phpunit.xml.dist
-writable/*
-!writable/.gitkeep
+writable/logs/*
+!writable/logs/.gitkeep
+writable/debugbar/*
+!writable/debugbar/.gitkeep
+writable/uploads/*
+!writable/uploads/.gitkeep
