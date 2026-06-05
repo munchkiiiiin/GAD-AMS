@@ -229,7 +229,7 @@ const statusBadgeClass = (status) => {
 //   router.push(`/staff/ar-view/${id}`);
 // };
 
-const viewDetails = (id) => {
+const viewDetails = (item) => {
   const id = item.acc_report_id || item.id;
   const currentUserId = user.value.id || user.value.user_id;
 
