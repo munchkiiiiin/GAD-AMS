@@ -1,5 +1,44 @@
 <?php
 
+// Temporary debug error/exception handler to capture and return 500 error traces
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
+set_exception_handler(function($exception) {
+    header('HTTP/1.1 500 Internal Server Error', true, 500);
+    header('Content-Type: application/json; charset=UTF-8');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    echo json_encode([
+        'error' => 'Caught exception',
+        'message' => $exception->getMessage(),
+        'file' => $exception->getFile(),
+        'line' => $exception->getLine(),
+        'trace' => $exception->getTraceAsString()
+    ], JSON_PRETTY_PRINT);
+    exit;
+});
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin');
+        echo json_encode([
+            'error' => 'Fatal Error',
+            'message' => $error['message'],
+            'file' => $error['file'],
+            'line' => $error['line']
+        ], JSON_PRETTY_PRINT);
+        exit;
+    }
+});
+
 use CodeIgniter\Boot;
 use Config\Paths;
 

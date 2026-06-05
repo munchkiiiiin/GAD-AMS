@@ -114,7 +114,7 @@ class Cors extends BaseConfig
             return;
         }
 
-        $frontendOrigin = rtrim((string) env('app.frontendURL', 'http://localhost:5173'), '/');
-        $this->default['allowedOrigins'] = [$frontendOrigin, 'http://127.0.0.1:5173'];
+        $frontendOrigin = rtrim((string) env('app.frontendURL', 'https://gad-ams.appwrite.network'), '/');
+        $this->default['allowedOrigins'] = [$frontendOrigin, 'http://localhost:5173', 'http://127.0.0.1:5173'];
     }
 }

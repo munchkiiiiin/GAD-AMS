@@ -126,7 +126,7 @@ class AuthController extends ResourceController
 
     private function setCorsHeaders()
     {
-        $frontendOrigin = rtrim((string) env('app.frontendURL', 'http://localhost:5173'), '/');
+        $frontendOrigin = rtrim((string) env('app.frontendURL', 'https://gad-ams.appwrite.network'), '/');
 
         $this->response->setHeader('Access-Control-Allow-Origin', $frontendOrigin)
                        ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
